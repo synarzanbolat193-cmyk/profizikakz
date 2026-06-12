@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>PhysicsPro | Физика курсы</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            options: { ignoreHtmlClass: 'no-mathjax' }
+        };
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #fef9c3 50%, #fde047 100%);
+            min-height: 100vh;
+            padding: 12px;
+        }
+        
+        .auth-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .auth-card {
+            background: white;
+            padding: 28px 20px;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            border: 1px solid #facc15;
+        }
+        .auth-card h2 { color: #0284c7; margin-bottom: 20px; text-align: center; }
+        .auth-card input {
+            width: 100%; padding: 14px; margin: 8px 0;
+            border: 2px solid #fde047; border-radius: 28px;
+            font-size: 16px; background: #fefce8;
+        }
+        .auth-card button {
+            width: 100%; padding: 14px; margin-top: 12px;
+            background: #facc15; border: none; border-radius: 28px;
+            font-weight: bold; font-size: 16px; color: #1e3a5f; cursor: pointer;
+        }
+        .auth-switch { text-align: center; margin-top: 16px; color: #475569; cursor: pointer; }
+        .auth-switch span { color: #0284c7; font-weight: bold; }
+        
+        .main-app { display: none; max-width: 600px; margin: 0 auto; }
+        
+        .header {
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            border-radius: 32px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(2,132,199,0.3);
+        }
+        .logo h1 { font-size: 1.5rem; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logout-btn { background: #facc15; padding: 8px 18px; border-radius: 40px; border: none; font-weight: bold; color: #1e3a5f; cursor: pointer; }
+        
+        .global-progress-card {
+            background: white;
+            border-radius: 28px;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid #facc15;
+        }
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 30px;
+            height: 12px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-fill { background: linear-gradient(90deg, #0284c7, #facc15); width: 0%; height: 100%; transition: width 0.3s; }
+        
+        .modules-accordion { background: white; border-radius: 28px; padding: 8px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .mod-header {
+            background: #fef9c3;
+            border-radius: 24px;
+            padding: 14px 18px;
+            margin: 6px 0;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #fde047;
+        }
+        .mod-header.active { background: #fde047; }
+        .mod-name { font-weight: bold; color: #1e3a5f; }
+        .mod-progress { background: #0284c7; color: white; padding: 2px 10px; border-radius: 40px; font-size: 12px; }
+        .mod-content { display: none; padding: 12px 6px; background: #f8fafc; border-radius: 20px; margin-top: 4px; }
+        .mod-content.show { display: block; }
+        
+        .topic-item {
+            background: white;
+            border-radius: 20px;
+            margin: 12px 0;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .topic-title { font-weight: bold; color: #0c4a6e; font-size: 1rem; }
+        .complete-check { width: 24px; height: 24px; cursor: pointer; accent-color: #facc15; }
+        .topic-detail { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #fde047; }
+        .topic-detail.open { display: block; }
+        
+        .theory-text {
+            background: #e0f2fe;
+            padding: 14px;
+            border-radius: 20px;
+            margin: 10px 0;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            color: #0c4a6e;
+        }
+        .formula-bubble {
+            background: #fef9c3;
+            padding: 12px;
+            border-radius: 20px;
+            margin: 8px 0;
+            text-align: center;
+            font-size: 0.95rem;
+            overflow-x: auto;
+            border-left: 5px solid #0284c7;
+        }
+        .task-card {
+            background: #fef9c3;
+            padding: 12px;
+            border-radius: 20px;
+            margin: 10px 0;
+        }
+        .task-input {
+            padding: 10px;
+            border-radius: 40px;
+            border: 1px solid #facc15;
+            width: 60%;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        .task-btn {
+            background: #0284c7;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .task-feedback { margin-top: 8px; font-size: 13px; }
+        
+        .formulas-gallery {
+            background: white;
+            border-radius: 28px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #fde047;
+        }
+        .formulas-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .formula-mini {
+            background: #e0f2fe;
+            padding: 10px;
+            border-radius: 18px;
+            font-size: 0.85rem;
+            text-align: center;
+            border-left: 4px solid #facc15;
+        }
+        
+        .calc-card {
+            background: white;
+            border-radius: 28px;
+            padding: 14px;
+            margin-top: 16px;
+            border: 1px solid #fde047;
+        }
+        .calc-input { width: 100%; padding: 12px; border-radius: 40px; border: 1px solid #facc15; font-size: 16px; background: #fefce8; }
+        .calc-btn { background: #facc15; width: 100%; padding: 10px; border-radius: 40px; border: none; font-weight: bold; margin-top: 8px; cursor: pointer; }
+        
+        footer { text-align: center; padding: 20px; color: #475569; font-size: 12px; }
+        
+        @media (max-width: 500px) {
+            body { padding: 8px; }
+            .topic-title { font-size: 0.9rem; }
+            .task-input { width: 55%; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="authModal" class="auth-modal">
+    <div class="auth-card">
+        <h2 id="authTitle">🔐 Кіру</h2>
+        <input type="text" id="authUsername" placeholder="Пайдаланушы аты">
+        <input type="password" id="authPassword" placeholder="Құпия сөз">
+        <button id="authSubmitBtn">Кіру</button>
+        <div class="auth-switch" id="switchToRegister">Аккаунтыңыз жоқ па? <span>Тіркелу</span></div>
+        <div id="authMsg" style="margin-top:10px;color:#dc2626;font-size:13px;"></div>
+    </div>
+</div>
+
+<div class="main-app" id="mainApp">
+    <div class="header">
+        <div class="logo"><h1>⚛️ PhysicsPro</h1></div>
+        <div><span style="color:white; margin-right:8px;">👤 <span id="currentUser"></span></span><button class="logout-btn" id="logoutBtn">Шығу</button></div>
+    </div>
+    
+    <div class="global-progress-card">
+        <p>📊 Жалпы прогресс</p>
+        <div class="progress-bar"><div class="progress-fill" id="globalFill"></div></div>
+        <span id="globalPercent">0%</span>
+    </div>
+    
+    <div class="modules-accordion" id="modulesAccordion"></div>
+    
+    <div class="formulas-gallery">
+        <h3 style="color:#0284c7;">📖 Барлық формулалар жинағы</h3>
+        <div class="formulas-grid" id="allFormulasGrid"></div>
+    </div>
+    
+    <div class="calc-card">
+        <p>🧮 Калькулятор</p>
+        <input type="text" id="calcInput" class="calc-input" placeholder="мысалы: 25*4+3">
+        <button class="calc-btn" id="calcBtn">Есептеу =</button>
+        <div id="calcResult" style="margin-top:6px; font-weight:bold;"></div>
+    </div>
+    
+    <footer>Физика курсы 7-11 сынып • Әр тақырыпта теория, формулалар және тапсырмалар</footer>
+</div>
+
+<script>
+// ===================== ТОЛЫҚ ЖӘНЕ ДҰРЫС ТЕОРИЯЛАРМЕН МОДУЛЬДЕР =====================
+const modulesData = {
+    "Механика": {
+        desc: "Қозғалыс және күштер туралы ілім",
+        topics: [
+            { 
+                name: "Материялық нүкте. Кинематика", 
+                theory: "Материялық нүкте деп берілген есептің шартында өлшемдерін елемеуге болатын денені айтады. Механикалық қозғалыс дегеніміз – дененің уақыт өте келе басқа денелерге қатысты орнының өзгеруі.<br><br>Жылдамдық – дененің қозғалыс жылдамдығын сипаттайтын шама: $$v = \\frac{\\Delta S}{\\Delta t}$$. Орын ауыстыру – бастапқы және соңғы нүктелерді қосатын бағытталған кесінді.<br><br>Үдеу – жылдамдықтың өзгеру жылдамдығын сипаттайды: $$a = \\frac{\\Delta v}{\\Delta t}$$. Бірқалыпты үдемелі қозғалыста: $$v = v_0 + at$$, $$S = v_0t + \\frac{at^2}{2}$$.",
+                formulas: ["v = \\frac{S}{t}", "a = \\frac{v - v_0}{t}", "S = v_0t + \\frac{at^2}{2}", "v^2 - v_0^2 = 2aS"],
+                tasks: [{ q: "Автомобиль 72 км/сағ жылдамдықпен 5 секунд жүрсе, қанша метр жүреді? (72 км/сағ = 20 м/с)", ans: 100 },
+                        { q: "Дене 4 м/с² үдеумен 3 секунд қозғалса, жылдамдығы қаншаға артады? (м/с)", ans: 12 }]
+            },
+            { 
+                name: "Ньютон заңдары", 
+                theory: "Ньютонның бірінші заңы (инерция заңы): денеге басқа денелер әсер етпесе немесе олардың әсері теңгерілсе, дене тыныштық күйін немесе бірқалыпты түзусызықты қозғалысын сақтайды.<br><br>Ньютонның екінші заңы: дененің алатын үдеуі оған әсер ететін күшке тура пропорционал және дене массасына кері пропорционал: $$\\vec{F} = m\\vec{a}$$. Күш пен үдеу бағыты бірдей.<br><br>Ньютонның үшінші заңы: денелер бір-біріне шамасы жағынан тең, ал бағыты жағынан қарама-қарсы күштермен әсерлеседі: $$F_{12} = -F_{21}$$.",
+                formulas: ["F = ma", "F_{12} = -F_{21}", "P = mg (ауырлық күші)", "F_үйк = \\mu N"],
+                tasks: [{ q: "Массасы 5 кг денеге 15 Н күш әсер етеді. Дененің үдеуі неге тең? (м/с²)", ans: 3 },
+                        { q: "Массасы 8 кг денеге 40 Н күш әсер етсе, үдеуі қанша?", ans: 5 }]
+            },
+            { 
+                name: "Бүкіләлемдік тартылыс заңы", 
+                theory: "Бүкіләлемдік тартылыс заңын Исаак Ньютон ашты. Заң бойынша: кез келген екі дене бір-бірін массаларының көбейтіндісіне тура пропорционал, арақашықтығының квадратына кері пропорционал күшпен тартады: $$F = G\\frac{m_1 m_2}{r^2}$$.<br><br>Мұндағы G = 6,67 × 10⁻¹¹ Н·м²/кг² – гравитациялық тұрақты. Осы заңның салдарынан Жер денелерді өзіне тартады (ауырлық күші). Жер бетінде ауырлық күші $$F = mg$$ формуласымен есептеледі, мұндағы g ≈ 9,8 м/с² – еркін түсу үдеуі.<br><br>Бірінші ғарыштық жылдамдық: $$v_1 = \\sqrt{gR} ≈ 7,9$$ км/с.",
+                formulas: ["F = G\\frac{m_1 m_2}{r^2}", "G = 6,67 \\times 10^{-11}", "g = 9,8 \\text{ м/с}^2", "v_1 = \\sqrt{gR}"],
+                tasks: [{ q: "Екі дененің массасын 2 есе арттырса, олардың тартылыс күші неше есе өзгереді?", ans: 4 }]
+            }
+        ]},
+    "Кинематика": {
+        desc: "Қозғалыстың геометриялық сипаттамасы",
+        topics: [
+            { 
+                name: "Бірқалыпты түзусызықты қозғалыс", 
+                theory: "Бірқалыпты қозғалыс дегеніміз – дененің кез келген тең уақыт аралықтарында бірдей жүріп өтетін қозғалыс. Мұндай қозғалыста жылдамдық тұрақты (модулі мен бағыты өзгермейді).<br><br>Бірқалыпты қозғалыс кезіндегі жүрілген жол: $$S = vt$$. Орын ауыстыру векторы: $$\\vec{S} = \\vec{v}t$$.<br><br>Қозғалыс теңдеуі (координатаның уақытқа тәуелділігі): $$x(t) = x_0 + vt$$. Егер дене бастапқы координатадан бастап қозғалса, $$x_0 = 0$$ деп алуға болады.",
+                formulas: ["S = vt", "x = x_0 + vt", "v = \\frac{S}{t}"],
+                tasks: [{ q: "Поезд 20 м/с жылдамдықпен 40 секунд жүрсе, қанша метр жол жүреді?", ans: 800 }]
+            },
+            { 
+                name: "Бірқалыпты үдемелі қозғалыс", 
+                theory: "Үдемелі қозғалыс – жылдамдығы уақыт өте келе өзгеретін қозғалыс. Бірқалыпты үдемелі қозғалыс деп үдеуі тұрақты болатын қозғалысты айтады.<br><br>Бірқалыпты үдемелі қозғалыс кезіндегі жылдамдық: $$v = v_0 + at$$. Жүрілген жол: $$S = v_0t + \\frac{at^2}{2}$$.<br><br>Егер бастапқы жылдамдық нөлге тең болса ($$v_0 = 0$$), онда $$v = at$$, $$S = \\frac{at^2}{2}$$, $$v^2 = 2aS$$.<br><br>Еркін түсу – ауырлық күшінің әсерінен болатын бірқалыпты үдемелі қозғалыс, мұнда $$a = g ≈ 9,8$$ м/с².",
+                formulas: ["v = v_0 + at", "S = v_0t + \\frac{at^2}{2}", "v^2 - v_0^2 = 2aS", "h = \\frac{gt^2}{2} (еркін түсу)"],
+                tasks: [{ q: "Дене 3 м/с² үдеумен 5 секунд қозғалса, соңғы жылдамдығы (бастапқы 0)?", ans: 15 },
+                        { q: "Дене 6 м/с² үдеумен 2 секундта қанша жол жүреді?", ans: 12 }]
+            }
+        ]},
+    "Молекулалық физика": {
+        desc: "Заттың молекулалық құрылысы және жылулық қозғалыс",
+        topics: [
+            { 
+                name: "Молекулалардың қозғалысы. Броундық қозғалыс", 
+                theory: "Молекулалық физика заттың ішкі құрылысын және жылулық құбылыстарды зерттейді. Барлық заттар молекулалар мен атомдардан тұрады. Молекулалар үздіксіз және хаотикалық қозғалыста болады.<br><br>Броундық қозғалыс – сұйық немесе газ ішіндегі ұсақ бөлшектердің молекулалардың соққысынан болатын бейберекет қозғалысы. Бұл құбылыс молекулалардың бар екенін дәлелдейді.<br><br>Молекулалардың орташа кинетикалық энергиясы температураға пропорционал: $$\\bar{E_k} = \\frac{3}{2}kT$$, мұндағы k = 1,38 × 10⁻²³ Дж/К – Больцман тұрақтысы.",
+                formulas: ["\\bar{E_k} = \\frac{3}{2}kT", "k = 1,38 \\times 10^{-23} \\text{ Дж/К}", "PV = \\frac{1}{3}Nm\\bar{v^2}"],
+                tasks: [{ q: "Температура 400 К болса, молекуланың орташа кинетикалық энергиясын есептеу формуласы?", ans: "3/2*k*400" }]
+            },
+            { 
+                name: "Идеал газ күйінің теңдеуі", 
+                theory: "Идеал газ деп молекулаларының өзара әсерлесуін ескермеуге болатын газды айтады. Идеал газдың күйі үш параметрмен сипатталады: қысым (p), көлем (V) және температура (T).<br><br>Бұл параметрлердің арасындағы байланысты Клапейрон-Менделеев теңдеуі (идеал газ күйінің теңдеуі) береді: $$pV = \\nu RT$$.<br><br>Мұндағы ν = m/M – зат мөлшері (моль), R = 8,31 Дж/(моль·К) – универсал газ тұрақтысы.<br><br>Изопроцестер: изотермиялық (T=const): pV = const; изобаралық (p=const): V/T = const; изохоралық (V=const): p/T = const.",
+                formulas: ["pV = \\nu RT", "\\nu = \\frac{m}{M}", "R = 8,31 \\text{ Дж/(моль·К)}", "pV = \\frac{m}{M}RT"],
+                tasks: [{ q: "Газдың көлемі 3 м³, қысымы 2·10⁵ Па. pV көбейтіндісі қанша?", ans: 600000 }]
+            }
+        ]},
+    "Термодинамика": {
+        desc: "Жылу құбылыстары және энергияның түрленуі",
+        topics: [
+            { 
+                name: "Ішкі энергия. Термодинамиканың 1-заңы", 
+                theory: "Ішкі энергия – дененің молекулаларының кинетикалық (қозғалыс энергиясы) және потенциалдық (өзара әсерлесу энергиясы) энергияларының қосындысы. Идеал газдың ішкі энергиясы тек температураға тәуелді: $$U = \\frac{3}{2}\\nu RT$$.<br><br>Термодинамиканың бірінші заңы – энергияның сақталу заңының жылу процестеріне арналған тұжырымы: денеге берілген жылу мөлшері оның ішкі энергиясының өзгерісіне және дененің сыртқы күштерге қарсы істеген жұмысына жұмсалады: $$\\Delta U = Q - A$$.<br><br>Егер газ сыртқы күштерге қарсы жұмыс істесе, A > 0. Газды сыққанда A < 0.",
+                formulas: ["\\Delta U = Q - A", "U = \\frac{3}{2}\\nu RT", "A = p\\Delta V"],
+                tasks: [{ q: "Газға 200 Дж жылу беріліп, ол 80 Дж жұмыс атқарса, ішкі энергия өзгерісі?", ans: 120 }]
+            },
+            { 
+                name: "Жылу мөлшері. Жылусыйымдылық", 
+                theory: "Жылу мөлшері – жылу алмасу кезінде бір денеден екінші денеге берілетін энергия. Денені қыздыру (немесе салқындату) үшін қажет жылу мөлшері: $$Q = mc\\Delta T$$, мұндағы c – меншікті жылусыйымдылық, ΔT – температура өзгерісі.<br><br>Заттың агрегаттық күйінің өзгеруі кезіндегі жылу мөлшері:<br>• Балқу/кристалдану: $$Q = \\lambda m$$ (λ – меншікті балқу жылуы)<br>• Булану/конденсация: $$Q = Lm$$ (L – меншікті булану жылуы)<br><br>Жану жылуы: $$Q = qm$$ (q – меншікті жану жылуы).",
+                formulas: ["Q = mc\\Delta T", "Q = \\lambda m", "Q = Lm", "Q = qm"],
+                tasks: [{ q: "3 кг суды 20°C-тан 70°C-қа қыздыру үшін қанша жылу керек? (c=4200)", ans: 630000 }]
+            }
+        ]},
+    "Электр және магнетизм": {
+        desc: "Электр және магнит құбылыстары",
+        topics: [
+            { 
+                name: "Ом заңы. Кедергі. Ток қуаты", 
+                theory: "Тізбек бөлігіне арналған Ом заңы: өткізгіштегі ток күші оның ұштарындағы кернеуге тура пропорционал, ал кедергіге кері пропорционал: $$I = \\frac{U}{R}$$.<br><br>Өткізгіштің кедергісі оның ұзындығына, көлденең қимасының ауданына және материалына тәуелді: $$R = \\rho\\frac{l}{S}$$, мұндағы ρ – меншікті кедергі.<br><br>Токтың қуаты: $$P = UI = I^2R = \\frac{U^2}{R}$$. Токтың жұмысы: $$A = Pt = UIt$$.<br><br>Өткізгіштерді тізбектей қосқанда: $$R = R_1 + R_2$$, $$I = I_1 = I_2$$. Параллель қосқанда: $$\\frac{1}{R} = \\frac{1}{R_1} + \\frac{1}{R_2}$$, $$U = U_1 = U_2$$.",
+                formulas: ["I = \\frac{U}{R}", "R = \\rho\\frac{l}{S}", "P = UI", "A = UIt"],
+                tasks: [{ q: "Кернеу 24 В, кедергі 8 Ом. Ток күші?", ans: 3 },
+                        { q: "Ток күші 3 А, кернеу 12 В. Қуат (Вт)?", ans: 36 }]
+            },
+            { 
+                name: "Магнит өрісі. Ампер және Лоренц күштері", 
+                theory: "Токты өткізгіш айналасында магнит өрісі пайда болады. Магнит өрісінің негізгі сипаттамасы – магнит индукциясы (B). Өлшем бірлігі – Тесла (Тл).<br><br>Магнит өрісіндегі токты өткізгішке әсер ететін күш – Ампер күші: $$F = BIl\\sin\\alpha$$, мұндағы α – ток бағыты мен магнит индукциясының арасындағы бұрыш.<br><br>Магнит өрісінде қозғалатын зарядталған бөлшекке әсер ететін күш – Лоренц күші: $$F_Л = qvB\\sin\\alpha$$. Лоренц күші бөлшектің траекториясын өзгертіп, оны шеңбер бойымен қозғалтады (бөлшек индукция сызықтарына перпендикуляр ұшқанда).<br><br>Сол қол ережесі: күштің бағытын анықтауға арналған ереже.",
+                formulas: ["F = BIl\\sin\\alpha", "F_Л = qvB\\sin\\alpha", "B = \\frac{F}{Il} (\\alpha = 90°)", "\\Phi = BS\\cos\\alpha (магнит ағыны)"],
+                tasks: [{ q: "B=0.3 Тл, I=2 A, l=0.4 м, α=90°. Ампер күші (Н)?", ans: 0.24 }]
+            }
+        ]},
+    "Оптика": {
+        desc: "Жарық құбылыстары",
+        topics: [
+            { 
+                name: "Жарықтың шағылу және сыну заңдары", 
+                theory: "Жарықтың шағылу заңы: түсу бұрышы шағылу бұрышына тең: $$\\alpha = \\beta$$. Түскен сәуле, шағылған сәуле және түсу нүктесіндегі перпендикуляр бір жазықтықта жатады.<br><br>Жарықтың сыну заңы (Снеллиус заңы): жарық екі ортаның шекарасынан өткенде бағытын өзгертеді. Сыну заңы: $$\\frac{\\sin\\alpha}{\\sin\\gamma} = \\frac{n_2}{n_1} = n_{21}$$, мұндағы n – ортаның абсолют сыну көрсеткіші. $$n = \\frac{c}{v}$$, c ≈ 3·10⁸ м/с – жарықтың вакуумдегі жылдамдығы.<br><br>Толық ішкі шағылу: жарық тығызырақ ортадан сирек ортаға өткенде, түсу бұрышы шекті бұрыштан үлкен болса, жарық толығымен шағылады.",
+                formulas: ["\\alpha = \\beta", "\\frac{\\sin\\alpha}{\\sin\\gamma} = \\frac{n_2}{n_1}", "n = \\frac{c}{v}", "\\sin\\alpha_0 = \\frac{n_2}{n_1} (\\gamma = 90°)"],
+                tasks: [{ q: "Вакуумде жарық жылд. 3·10⁸,
